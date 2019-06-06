@@ -1,6 +1,6 @@
 # get username and password
 USERNAME=${1:-"user1"}
-PASSWORD=${1:-"foxfox1"}
+PASSWORD=${2:-"foxfox1"}
 
 # get packages
 apt -y update
