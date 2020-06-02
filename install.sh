@@ -12,9 +12,28 @@ apt -y install apache2-utils
 
 # replace squid config with this
 echo "
+# authentication scheme
 auth_param basic program /usr/lib/squid3/basic_ncsa_auth /etc/squid/passwords
 auth_param basic realm proxy
+
+# Rules allowing access from your local networks.
+# Adapt to list your (internal) IP networks from where browsing
+# should be allowed
+acl localnet src 192.168.0.0/24
 acl authenticated proxy_auth REQUIRED
+acl SSL_ports port 443
+acl Safe_ports port 443
+acl Safe_ports port 80
+acl CONNECT method CONNECT
+
+# Deny requests to certain unsafe ports
+http_access deny !Safe_ports
+# Deny CONNECT to other than secure SSL ports
+http_access deny CONNECT !SSL_ports
+# Allow access for authenticated users
+http_access allow authenticated
+# And finally deny all other access to this proxy
+http_access deny all
 
 # Privacy
 via off
@@ -23,13 +42,9 @@ request_header_access Via deny all
 request_header_access Forwarded-For deny all
 request_header_access X-Forwarded-For deny all
 
-acl SSL_ports port 443
-acl Safe_ports port 443
-acl Safe_ports port 80
-acl CONNECT method CONNECT
-http_access deny !Safe_ports
-http_access deny CONNECT !SSL_ports
-http_access allow authenticated
+# logfiles
+access_log /var/log/squid/access.log
+cache_log /var/log/squid/cache.log
 
 http_port 3768
 " > /etc/squid/squid.conf
